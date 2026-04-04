@@ -7,7 +7,7 @@ use syn::Token;
 use syn::parse_macro_input;
 use syn::punctuated::Punctuated;
 
-#[proc_macro_derive(HasSlot, attributes(slot))]
+#[proc_macro_derive(TypeSlot, attributes(slot))]
 pub fn derive_has_slot(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
@@ -17,7 +17,7 @@ pub fn derive_has_slot(input: TokenStream) -> TokenStream {
         .iter()
         .find(|a| a.path().is_ident("slot"))
         .expect(
-            "#[derive(HasSlot)] requires a #[slot(...)] attribute",
+            "#[derive(TypeSlot)] requires a #[slot(...)] attribute",
         );
 
     let groups: Vec<Path> = slot_attr
@@ -40,7 +40,7 @@ pub fn derive_has_slot(input: TokenStream) -> TokenStream {
             static #slot_ident: ::typeslot::AtomicSlot =
                 ::typeslot::AtomicSlot::new();
 
-            impl ::typeslot::HasSlot<#group> for #name {
+            impl ::typeslot::TypeSlot<#group> for #name {
                 fn slot() -> Option<usize> {
                     #slot_ident.get()
                 }

@@ -2,7 +2,7 @@ use core::any::TypeId;
 use core::sync::atomic::AtomicUsize;
 use core::sync::atomic::Ordering;
 
-pub use typeslot_macros::HasSlot;
+pub use typeslot_macros::TypeSlot;
 
 #[doc(hidden)]
 pub use inventory;
@@ -49,10 +49,10 @@ impl Default for AtomicSlot {
 }
 
 /// Registration entry for a type that implements
-/// [`HasSlot<G>`] within group `G`.
+/// [`TypeSlot<G>`] within group `G`.
 ///
 /// Submitted to the [`inventory`] collection at link time
-/// via `#[derive(HasSlot)]`.
+/// via `#[derive(TypeSlot)]`.
 pub struct TypeSlotEntry {
     pub type_id: TypeId,
     pub group_id: TypeId,
@@ -63,7 +63,7 @@ inventory::collect!(TypeSlotEntry);
 
 /// A type with a statically assigned slot index within
 /// group `G`.
-pub trait HasSlot<G: 'static>: 'static {
+pub trait TypeSlot<G: 'static>: 'static {
     /// Returns the slot index, or `None` if [`init`] has not
     /// been called for `G` yet.
     fn slot() -> Option<usize>;
@@ -73,12 +73,14 @@ pub trait HasSlot<G: 'static>: 'static {
 /// group `G`.
 ///
 /// Must be called once per group before any call to
-/// [`HasSlot<G>::slot`].
+/// [`TypeSlot<G>::slot`].
+///
+/// Returns the number of slots assigned.
 ///
 /// # Panics
 ///
 /// Panics if called more than once for the same group.
-pub fn init<G: 'static>() {
+pub fn init<G: 'static>() -> usize {
     let group_id = TypeId::of::<G>();
     let mut index = 0usize;
     for entry in inventory::iter::<TypeSlotEntry>() {
@@ -87,4 +89,5 @@ pub fn init<G: 'static>() {
             index += 1;
         }
     }
+    index
 }

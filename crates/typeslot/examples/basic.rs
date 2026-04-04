@@ -1,26 +1,26 @@
-use typeslot::HasSlot;
+use typeslot::TypeSlot;
 
 struct ElementGroup;
 struct ResourceGroup;
 
-#[derive(HasSlot)]
+#[derive(TypeSlot)]
 #[slot(ElementGroup)]
 struct Horizontal;
 
-#[derive(HasSlot)]
+#[derive(TypeSlot)]
 #[slot(ElementGroup)]
 struct Vertical;
 
-#[derive(HasSlot)]
+#[derive(TypeSlot)]
 #[slot(ResourceGroup)]
 struct Health;
 
-#[derive(HasSlot)]
+#[derive(TypeSlot)]
 #[slot(ResourceGroup)]
 struct Mana;
 
 // A type can belong to multiple groups.
-#[derive(HasSlot)]
+#[derive(TypeSlot)]
 #[slot(ElementGroup, ResourceGroup)]
 struct Label;
 
@@ -31,28 +31,28 @@ fn main() {
     println!("Elements:");
     println!(
         "  Horizontal: {:?}",
-        <Horizontal as HasSlot<ElementGroup>>::slot()
+        <Horizontal as TypeSlot<ElementGroup>>::slot()
     );
     println!(
         "  Vertical:   {:?}",
-        <Vertical as HasSlot<ElementGroup>>::slot()
+        <Vertical as TypeSlot<ElementGroup>>::slot()
     );
     println!(
         "  Label:      {:?}",
-        <Label as HasSlot<ElementGroup>>::slot()
+        <Label as TypeSlot<ElementGroup>>::slot()
     );
 
     println!("Resources:");
     println!(
         "  Health: {:?}",
-        <Health as HasSlot<ResourceGroup>>::slot()
+        <Health as TypeSlot<ResourceGroup>>::slot()
     );
     println!(
         "  Mana:   {:?}",
-        <Mana as HasSlot<ResourceGroup>>::slot()
+        <Mana as TypeSlot<ResourceGroup>>::slot()
     );
     println!(
         "  Label:  {:?}",
-        <Label as HasSlot<ResourceGroup>>::slot()
+        <Label as TypeSlot<ResourceGroup>>::slot()
     );
 }
