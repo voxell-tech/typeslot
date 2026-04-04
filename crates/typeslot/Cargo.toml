@@ -3,6 +3,9 @@ name = "typeslot"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "Statically assigned slot indices for types, grouped by a marker type."
+categories = ["rust-patterns", "data-structures", "development-tools"]
+keywords = ["typemap", "type-id", "slot", "inventory", "static"]
 
 [dependencies]
 typeslot_macros.workspace = true

@@ -3,6 +3,7 @@ name = "typeslot_macros"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+description = "Proc-macro derive for typeslot."
 
 [lib]
 proc-macro = true
