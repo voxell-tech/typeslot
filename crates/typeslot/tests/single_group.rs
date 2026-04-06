@@ -1,4 +1,4 @@
-use typeslot::TypeSlot;
+use typeslot::prelude::*;
 
 struct ComponentGroup;
 
@@ -16,27 +16,20 @@ struct Health;
 
 #[test]
 fn unique_slot_indices() {
-    assert_eq!(<Position as TypeSlot<ComponentGroup>>::slot(), None);
-    assert_eq!(<Velocity as TypeSlot<ComponentGroup>>::slot(), None);
-    assert_eq!(<Health as TypeSlot<ComponentGroup>>::slot(), None);
+    let group = SlotGroup::<ComponentGroup>::new();
 
-    let count = typeslot::init::<ComponentGroup>();
+    assert_eq!(group.try_get::<Position>(), None);
+    assert_eq!(group.try_get::<Velocity>(), None);
+    assert_eq!(group.try_get::<Health>(), None);
+
+    let count = init_slot::<ComponentGroup>();
 
     assert_eq!(count, 3);
-    assert!(<Position as TypeSlot<ComponentGroup>>::slot().is_some());
-    assert!(<Velocity as TypeSlot<ComponentGroup>>::slot().is_some());
-    assert!(<Health as TypeSlot<ComponentGroup>>::slot().is_some());
+    assert!(group.try_get::<Position>().is_some());
+    assert!(group.try_get::<Velocity>().is_some());
+    assert!(group.try_get::<Health>().is_some());
 
-    assert_ne!(
-        <Position as TypeSlot<ComponentGroup>>::slot(),
-        <Velocity as TypeSlot<ComponentGroup>>::slot()
-    );
-    assert_ne!(
-        <Velocity as TypeSlot<ComponentGroup>>::slot(),
-        <Health as TypeSlot<ComponentGroup>>::slot()
-    );
-    assert_ne!(
-        <Position as TypeSlot<ComponentGroup>>::slot(),
-        <Health as TypeSlot<ComponentGroup>>::slot()
-    );
+    assert_ne!(group.get::<Position>(), group.get::<Velocity>());
+    assert_ne!(group.get::<Velocity>(), group.get::<Health>());
+    assert_ne!(group.get::<Position>(), group.get::<Health>());
 }

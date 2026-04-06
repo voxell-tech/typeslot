@@ -25,8 +25,8 @@ struct Mana;
 struct Label;
 
 fn main() {
-    typeslot::init::<ElementGroup>();
-    typeslot::init::<ResourceGroup>();
+    typeslot::init_slot::<ElementGroup>();
+    typeslot::init_slot::<ResourceGroup>();
 
     println!("Elements:");
     println!(

@@ -2,11 +2,9 @@
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::DeriveInput;
-use syn::Path;
-use syn::Token;
 use syn::parse_macro_input;
 use syn::punctuated::Punctuated;
+use syn::{DeriveInput, Path, Token};
 
 #[proc_macro_derive(TypeSlot, attributes(slot))]
 pub fn derive_has_slot(input: TokenStream) -> TokenStream {
