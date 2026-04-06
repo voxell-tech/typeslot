@@ -1,7 +1,6 @@
 #![doc = include_str!("../README.md")]
 
 use proc_macro::TokenStream;
-use quote::format_ident;
 use quote::quote;
 use syn::DeriveInput;
 use syn::Path;
@@ -31,30 +30,25 @@ pub fn derive_has_slot(input: TokenStream) -> TokenStream {
         .collect();
 
     let impls = groups.iter().map(|group| {
-        let group_ident = &group.segments.last().unwrap().ident;
-        let slot_ident = format_ident!(
-            "__TYPESLOT_{}_{}",
-            name.to_string().to_uppercase(),
-            group_ident.to_string().to_uppercase(),
-        );
-
         quote! {
-            static #slot_ident: ::typeslot::AtomicSlot =
-                ::typeslot::AtomicSlot::new();
+            const _: () = {
+                static __SLOT: ::typeslot::AtomicSlot =
+                    ::typeslot::AtomicSlot::new();
 
-            impl ::typeslot::TypeSlot<#group> for #name {
-                fn slot() -> Option<usize> {
-                    #slot_ident.get()
+                impl ::typeslot::TypeSlot<#group> for #name {
+                    fn slot() -> Option<usize> {
+                        __SLOT.get()
+                    }
                 }
-            }
 
-            ::typeslot::inventory::submit! {
-                ::typeslot::TypeSlotEntry {
-                    type_id: ::core::any::TypeId::of::<#name>(),
-                    group_id: ::core::any::TypeId::of::<#group>(),
-                    slot: &#slot_ident,
+                ::typeslot::inventory::submit! {
+                    ::typeslot::TypeSlotEntry {
+                        type_id: ::core::any::TypeId::of::<#name>(),
+                        group_id: ::core::any::TypeId::of::<#group>(),
+                        slot: &__SLOT,
+                    }
                 }
-            }
+            };
         }
     });
 
