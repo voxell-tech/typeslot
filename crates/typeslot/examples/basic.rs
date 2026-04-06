@@ -1,4 +1,4 @@
-use typeslot::TypeSlot;
+use typeslot::prelude::*;
 
 struct ElementGroup;
 struct ResourceGroup;
@@ -25,34 +25,19 @@ struct Mana;
 struct Label;
 
 fn main() {
-    typeslot::init::<ElementGroup>();
-    typeslot::init::<ResourceGroup>();
+    init_slot::<ElementGroup>();
+    init_slot::<ResourceGroup>();
+
+    let elements = SlotGroup::<ElementGroup>::new();
+    let resources = SlotGroup::<ResourceGroup>::new();
 
     println!("Elements:");
-    println!(
-        "  Horizontal: {:?}",
-        <Horizontal as TypeSlot<ElementGroup>>::slot()
-    );
-    println!(
-        "  Vertical:   {:?}",
-        <Vertical as TypeSlot<ElementGroup>>::slot()
-    );
-    println!(
-        "  Label:      {:?}",
-        <Label as TypeSlot<ElementGroup>>::slot()
-    );
+    println!("  Horizontal: {}", elements.get::<Horizontal>());
+    println!("  Vertical:   {}", elements.get::<Vertical>());
+    println!("  Label:      {}", elements.get::<Label>());
 
     println!("Resources:");
-    println!(
-        "  Health: {:?}",
-        <Health as TypeSlot<ResourceGroup>>::slot()
-    );
-    println!(
-        "  Mana:   {:?}",
-        <Mana as TypeSlot<ResourceGroup>>::slot()
-    );
-    println!(
-        "  Label:  {:?}",
-        <Label as TypeSlot<ResourceGroup>>::slot()
-    );
+    println!("  Health: {}", resources.get::<Health>());
+    println!("  Mana:   {}", resources.get::<Mana>());
+    println!("  Label:  {}", resources.get::<Label>());
 }
