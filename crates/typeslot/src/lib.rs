@@ -94,3 +94,29 @@ pub fn init<G: 'static>() -> usize {
     }
     index
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn atomic_slot_starts_unset() {
+        let slot = AtomicSlot::new();
+        assert_eq!(slot.get(), None);
+    }
+
+    #[test]
+    fn atomic_slot_set_and_get() {
+        let slot = AtomicSlot::new();
+        slot.set(42);
+        assert_eq!(slot.get(), Some(42));
+    }
+
+    #[test]
+    #[should_panic(expected = "`AtomicSlot::set` called twice")]
+    fn atomic_slot_panics_on_double_set() {
+        let slot = AtomicSlot::new();
+        slot.set(1);
+        slot.set(2);
+    }
+}
