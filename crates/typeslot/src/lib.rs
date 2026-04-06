@@ -1,3 +1,6 @@
+#![doc = include_str!("../README.md")]
+#![no_std]
+
 use core::any::TypeId;
 use core::sync::atomic::AtomicUsize;
 use core::sync::atomic::Ordering;

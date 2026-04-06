@@ -6,7 +6,10 @@ resolver = "2"
 version = "0.1.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/voxell-tech/typeslot"
+keywords = ["typemap", "type-id", "slot", "static", "macro"]
+categories = ["no-std", "rust-patterns", "development-tools"]
 
 [workspace.dependencies]
-typeslot_macros = { path = "crates/typeslot_macros" }
+typeslot_macros = { version = "0.1.0", path = "crates/typeslot_macros" }
 inventory = "0.3"
