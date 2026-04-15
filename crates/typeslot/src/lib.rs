@@ -69,12 +69,28 @@ pub struct TypeSlotEntry {
 
 inventory::collect!(TypeSlotEntry);
 
-/// A type with a statically assigned slot index within
-/// group `G`.
+/// A type with a statically assigned slot index within group `G`.
+///
+/// Always use the derive macro to generate the correct
+/// implementation:
+///
+/// ```
+/// use typeslot::prelude::*;
+///
+/// // Define group markers.
+/// struct ResourceGroup;
+///
+/// // Derive `TypeSlot` on your types.
+/// #[derive(TypeSlot)]
+/// #[slot(ResourceGroup)]
+/// struct Health;
+/// ```
 pub trait TypeSlot<G: 'static>: 'static {
     /// Returns the slot index, or `None` if [`init_slot`] has not
     /// been called for `G` yet.
-    fn slot() -> Option<usize>;
+    fn slot() -> Option<usize>
+    where
+        Self: Sized;
 }
 
 /// A zero-sized handle for querying slot indices within group `G`.
