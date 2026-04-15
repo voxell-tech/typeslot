@@ -91,6 +91,8 @@ pub trait TypeSlot<G: 'static>: 'static {
     fn slot() -> Option<usize>
     where
         Self: Sized;
+
+    fn dyn_slot(&self) -> Option<usize>;
 }
 
 /// A zero-sized handle for querying slot indices within group `G`.
@@ -187,5 +189,10 @@ mod tests {
         let slot = AtomicSlot::new();
         slot.set(1);
         slot.set(2);
+    }
+
+    #[test]
+    fn dyn_compatibility() {
+        let _: Option<&dyn TypeSlot<()>> = None;
     }
 }
