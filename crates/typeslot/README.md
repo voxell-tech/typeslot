@@ -14,8 +14,11 @@ Assigns each type a unique `usize` index at startup, with optional group compart
 ```rust
 use typeslot::prelude::*;
 
-// Define group markers.
+// Derive `SlotGroup` on your group markers.
+#[derive(SlotGroup)]
 struct ElementGroup;
+
+#[derive(SlotGroup)]
 struct ResourceGroup;
 
 // Derive `TypeSlot` on your types.
@@ -36,20 +39,16 @@ struct Health;
 #[slot(ElementGroup, ResourceGroup)]
 struct Label;
 
-// Call `init_slot` once per group before accessing slots.
+// Call `init` once per group before accessing slots.
 // It returns the number of slots assigned in the group.
-let element_count = init_slot::<ElementGroup>();
-let resource_count = init_slot::<ResourceGroup>();
+let element_count = ElementGroup::init();
+let resource_count = ResourceGroup::init();
 
 assert_eq!(element_count, 3); // Horizontal, Vertical, Label
 assert_eq!(resource_count, 2); // Health, Label
 
-// Use SlotGroup for ergonomic access without repeating the group type.
-let elements = SlotGroup::<ElementGroup>::new();
-let resources = SlotGroup::<ResourceGroup>::new();
-
-println!("{}", elements.get::<Horizontal>());
-println!("{}", resources.get::<Health>());
+println!("{}", ElementGroup::slot::<Horizontal>());
+println!("{}", ResourceGroup::slot::<Health>());
 
 // Or use the free functions directly.
 println!("{}", slot::<Horizontal, ElementGroup>());

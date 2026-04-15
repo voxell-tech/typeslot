@@ -1,6 +1,9 @@
 use typeslot::prelude::*;
 
+#[derive(SlotGroup)]
 struct ElementGroup;
+
+#[derive(SlotGroup)]
 struct ResourceGroup;
 
 #[derive(TypeSlot)]
@@ -25,19 +28,16 @@ struct Mana;
 struct Label;
 
 fn main() {
-    init_slot::<ElementGroup>();
-    init_slot::<ResourceGroup>();
-
-    let elements = SlotGroup::<ElementGroup>::new();
-    let resources = SlotGroup::<ResourceGroup>::new();
+    ElementGroup::init();
+    ResourceGroup::init();
 
     println!("Elements:");
-    println!("  Horizontal: {}", elements.get::<Horizontal>());
-    println!("  Vertical:   {}", elements.get::<Vertical>());
-    println!("  Label:      {}", elements.get::<Label>());
+    println!("  Horizontal: {}", ElementGroup::slot::<Horizontal>());
+    println!("  Vertical:   {}", ElementGroup::slot::<Vertical>());
+    println!("  Label:      {}", ElementGroup::slot::<Label>());
 
     println!("Resources:");
-    println!("  Health: {}", resources.get::<Health>());
-    println!("  Mana:   {}", resources.get::<Mana>());
-    println!("  Label:  {}", resources.get::<Label>());
+    println!("  Health: {}", ResourceGroup::slot::<Health>());
+    println!("  Mana:   {}", ResourceGroup::slot::<Mana>());
+    println!("  Label:  {}", ResourceGroup::slot::<Label>());
 }

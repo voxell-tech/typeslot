@@ -1,6 +1,9 @@
 use typeslot::prelude::*;
 
+#[derive(SlotGroup)]
 struct ElementGroup;
+
+#[derive(SlotGroup)]
 struct ResourceGroup;
 
 #[derive(TypeSlot)]
@@ -17,25 +20,28 @@ struct Image;
 
 #[test]
 fn unique_slot_indices_per_group() {
-    let elements = SlotGroup::<ElementGroup>::new();
-    let resources = SlotGroup::<ResourceGroup>::new();
+    assert_eq!(ElementGroup::try_slot::<Button>(), None);
+    assert_eq!(ResourceGroup::try_slot::<Texture>(), None);
+    assert_eq!(ElementGroup::try_slot::<Image>(), None);
+    assert_eq!(ResourceGroup::try_slot::<Image>(), None);
 
-    assert_eq!(elements.try_get::<Button>(), None);
-    assert_eq!(resources.try_get::<Texture>(), None);
-    assert_eq!(elements.try_get::<Image>(), None);
-    assert_eq!(resources.try_get::<Image>(), None);
-
-    let element_count = init_slot::<ElementGroup>();
-    let resource_count = init_slot::<ResourceGroup>();
+    let element_count = ElementGroup::init();
+    let resource_count = ResourceGroup::init();
 
     assert_eq!(element_count, 2); // Button, Image
     assert_eq!(resource_count, 2); // Texture, Image
 
-    assert!(elements.try_get::<Button>().is_some());
-    assert!(resources.try_get::<Texture>().is_some());
-    assert!(elements.try_get::<Image>().is_some());
-    assert!(resources.try_get::<Image>().is_some());
+    assert!(ElementGroup::try_slot::<Button>().is_some());
+    assert!(ResourceGroup::try_slot::<Texture>().is_some());
+    assert!(ElementGroup::try_slot::<Image>().is_some());
+    assert!(ResourceGroup::try_slot::<Image>().is_some());
 
-    assert_ne!(elements.get::<Button>(), elements.get::<Image>());
-    assert_ne!(resources.get::<Texture>(), resources.get::<Image>());
+    assert_ne!(
+        ElementGroup::slot::<Button>(),
+        ElementGroup::slot::<Image>()
+    );
+    assert_ne!(
+        ResourceGroup::slot::<Texture>(),
+        ResourceGroup::slot::<Image>()
+    );
 }

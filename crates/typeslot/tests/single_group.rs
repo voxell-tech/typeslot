@@ -1,5 +1,6 @@
 use typeslot::prelude::*;
 
+#[derive(SlotGroup)]
 struct ComponentGroup;
 
 #[derive(TypeSlot)]
@@ -16,20 +17,27 @@ struct Health;
 
 #[test]
 fn unique_slot_indices() {
-    let group = SlotGroup::<ComponentGroup>::new();
-
-    assert_eq!(group.try_get::<Position>(), None);
-    assert_eq!(group.try_get::<Velocity>(), None);
-    assert_eq!(group.try_get::<Health>(), None);
+    assert_eq!(ComponentGroup::try_slot::<Position>(), None);
+    assert_eq!(ComponentGroup::try_slot::<Velocity>(), None);
+    assert_eq!(ComponentGroup::try_slot::<Health>(), None);
 
     let count = init_slot::<ComponentGroup>();
 
     assert_eq!(count, 3);
-    assert!(group.try_get::<Position>().is_some());
-    assert!(group.try_get::<Velocity>().is_some());
-    assert!(group.try_get::<Health>().is_some());
+    assert!(ComponentGroup::try_slot::<Position>().is_some());
+    assert!(ComponentGroup::try_slot::<Velocity>().is_some());
+    assert!(ComponentGroup::try_slot::<Health>().is_some());
 
-    assert_ne!(group.get::<Position>(), group.get::<Velocity>());
-    assert_ne!(group.get::<Velocity>(), group.get::<Health>());
-    assert_ne!(group.get::<Position>(), group.get::<Health>());
+    assert_ne!(
+        ComponentGroup::slot::<Position>(),
+        ComponentGroup::slot::<Velocity>()
+    );
+    assert_ne!(
+        ComponentGroup::slot::<Velocity>(),
+        ComponentGroup::slot::<Health>()
+    );
+    assert_ne!(
+        ComponentGroup::slot::<Position>(),
+        ComponentGroup::slot::<Health>()
+    );
 }

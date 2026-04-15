@@ -7,7 +7,7 @@ use syn::punctuated::Punctuated;
 use syn::{DeriveInput, Path, Token};
 
 #[proc_macro_derive(TypeSlot, attributes(slot))]
-pub fn derive_has_slot(input: TokenStream) -> TokenStream {
+pub fn derive_type_slot(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
 
@@ -57,4 +57,37 @@ pub fn derive_has_slot(input: TokenStream) -> TokenStream {
     });
 
     quote! { #(#impls)* }.into()
+}
+
+#[proc_macro_derive(SlotGroup)]
+pub fn derive_slot_group(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+
+    quote! {
+        const _: () = {
+            static __LEN: ::typeslot::AtomicSlot =
+                ::typeslot::AtomicSlot::new();
+
+            impl ::typeslot::SlotGroup for #name {
+                #[inline]
+                fn init() -> usize {
+                    let len = ::typeslot::init_slot::<Self>();
+                    __LEN.set(len);
+                    len
+                }
+
+                #[inline]
+                fn try_len() -> Option<usize> {
+                    __LEN.get()
+                }
+
+                #[inline]
+                fn len() -> usize {
+                    __LEN.get().expect("group not initialized; call `SlotGroup::init` first")
+                }
+            }
+        };
+    }
+    .into()
 }
