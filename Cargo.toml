@@ -3,7 +3,7 @@ members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/voxell-tech/typeslot"
@@ -11,5 +11,5 @@ keywords = ["typemap", "type-id", "slot", "static", "macro"]
 categories = ["no-std", "rust-patterns", "development-tools"]
 
 [workspace.dependencies]
-typeslot_macros = { version = "0.2.0", path = "crates/typeslot_macros" }
+typeslot_macros = { version = "0.2.1", path = "crates/typeslot_macros" }
 inventory = "0.3"
