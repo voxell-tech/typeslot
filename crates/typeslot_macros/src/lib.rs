@@ -34,7 +34,13 @@ pub fn derive_has_slot(input: TokenStream) -> TokenStream {
                     ::typeslot::AtomicSlot::new();
 
                 impl ::typeslot::TypeSlot<#group> for #name {
+                    #[inline]
                     fn slot() -> Option<usize> {
+                        __SLOT.get()
+                    }
+
+                    #[inline]
+                    fn dyn_slot(&self) -> Option<usize> {
                         __SLOT.get()
                     }
                 }
