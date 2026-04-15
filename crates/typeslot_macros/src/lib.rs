@@ -35,12 +35,12 @@ pub fn derive_type_slot(input: TokenStream) -> TokenStream {
 
                 impl ::typeslot::TypeSlot<#group> for #name {
                     #[inline]
-                    fn slot() -> Option<usize> {
+                    fn try_slot() -> Option<usize> {
                         __SLOT.get()
                     }
 
                     #[inline]
-                    fn dyn_slot(&self) -> Option<usize> {
+                    fn dyn_try_slot(&self) -> Option<usize> {
                         __SLOT.get()
                     }
                 }

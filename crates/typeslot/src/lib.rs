@@ -10,7 +10,7 @@ pub use typeslot_macros::{SlotGroup, TypeSlot};
 pub use inventory;
 
 pub mod prelude {
-    pub use crate::{SlotGroup, TypeSlot, init_slot, slot, try_slot};
+    pub use crate::{SlotGroup, TypeSlot, init_slot};
 }
 
 /// A write-once slot for a `usize` index.
@@ -86,65 +86,105 @@ inventory::collect!(TypeSlotEntry);
 pub trait TypeSlot<G: 'static>: 'static {
     /// Returns the slot index, or `None` if [`init_slot`] has not
     /// been called for `G` yet.
-    fn slot() -> Option<usize>
+    fn try_slot() -> Option<usize>
     where
         Self: Sized;
 
-    fn dyn_slot(&self) -> Option<usize>;
+    /// Returns the slot index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`init_slot`] has not been called for `G` yet.
+    #[inline]
+    fn slot() -> usize
+    where
+        Self: Sized,
+    {
+        Self::try_slot().expect("slot not initialized; call `init_slot` or `SlotGroup::init` first")
+    }
+
+    /// Returns the slot index via a trait object, or `None` if
+    /// [`init_slot`] has not been called for `G` yet.
+    fn dyn_try_slot(&self) -> Option<usize>;
+
+    /// Returns the slot index via a trait object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`init_slot`] has not been called for `G` yet.
+    #[inline]
+    fn dyn_slot(&self) -> usize {
+        self.dyn_try_slot()
+            .expect("slot not initialized; call `init_slot` or `SlotGroup::init` first")
+    }
 }
 
+/// A group of types that have been assigned slot indices via
+/// [`init_slot`].
+///
+/// Always use the derive macro to generate the correct
+/// implementation:
+///
+/// ```
+/// use typeslot::prelude::*;
+///
+/// #[derive(SlotGroup)]
+/// struct ResourceGroup;
+/// ```
 pub trait SlotGroup: 'static {
+    /// Assigns a unique index to each type registered in this group
+    /// and records the total count.
+    ///
+    /// Must be called once before any call to [`SlotGroup::slot`] or
+    /// [`SlotGroup::len`].
+    ///
+    /// Returns the number of slots assigned.
+    ///
+    /// # Panics
+    ///
+    /// Panics if called more than once for the same group.
     fn init() -> usize;
 
+    /// Returns the number of slots assigned to this group, or `None`
+    /// if [`SlotGroup::init`] has not been called yet.
     fn try_len() -> Option<usize>;
 
+    /// Returns the number of slots assigned to this group.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`SlotGroup::init`] has not been called yet.
     fn len() -> usize;
 
-    #[inline]
     /// Returns the slot index of type `T` in this group, or `None` if
-    /// [`SlotGroup::init()`] has not been called for `G` yet.
+    /// [`SlotGroup::init`] has not been called yet.
+    #[inline]
     fn try_slot<T: TypeSlot<Self>>() -> Option<usize>
     where
         Self: Sized,
     {
-        try_slot::<T, Self>()
+        T::try_slot()
     }
 
-    #[inline]
     /// Returns the slot index of type `T` in this group.
     ///
     /// # Panics
     ///
-    /// Panics if [`SlotGroup::init()`] has not been called yet.
+    /// Panics if [`SlotGroup::init`] has not been called yet.
+    #[inline]
     fn slot<T: TypeSlot<Self>>() -> usize
     where
         Self: Sized,
     {
-        Self::try_slot::<T>()
-            .expect("slot not initialized; call `Group::init` first")
+        T::slot()
     }
-}
-
-/// Returns the slot index of type `T` in group `G`.
-///
-/// # Panics
-///
-/// Panics if [`init_slot`] has not been called for `G` yet.
-pub fn slot<T: TypeSlot<G>, G: 'static>() -> usize {
-    T::slot().expect("slot not initialized; call `init_slot` first")
-}
-
-/// Returns the slot index of type `T` in group `G`, or `None` if
-/// [`init_slot`] has not been called for `G` yet.
-pub fn try_slot<T: TypeSlot<G>, G: 'static>() -> Option<usize> {
-    T::slot()
 }
 
 /// Assigns a unique index to each type registered in
 /// group `G`.
 ///
 /// Must be called once per group before any call to
-/// [`TypeSlot<G>::slot`].
+/// [`TypeSlot::slot`] or [`TypeSlot::try_slot`].
 ///
 /// Returns the number of slots assigned.
 ///

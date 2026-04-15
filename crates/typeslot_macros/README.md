@@ -7,9 +7,9 @@
 [![CI](https://github.com/voxell-tech/typeslot/workflows/CI/badge.svg)](https://github.com/voxell-tech/typeslot/actions)
 [![Discord](https://img.shields.io/discord/442334985471655946.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/Mhnyp6VYEQ)
 
-Proc-macro crate for [`typeslot`](https://crates.io/crates/typeslot). Provides the `#[derive(TypeSlot)]` derive macro and the `#[slot(...)]` attribute.
+Proc-macro crate for [`typeslot`](https://crates.io/crates/typeslot).
 
-This crate is not meant to be used directly, depend on `typeslot` instead, which re-exports the derive macro.
+This crate is not meant to be used directly, depend on `typeslot` instead, which re-exports the derive macros.
 
 ## Join the community!
 

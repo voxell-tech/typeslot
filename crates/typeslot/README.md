@@ -49,10 +49,27 @@ assert_eq!(resource_count, 2); // Health, Label
 
 println!("{}", ElementGroup::slot::<Horizontal>());
 println!("{}", ResourceGroup::slot::<Health>());
+```
 
-// Or use the free functions directly.
-println!("{}", slot::<Horizontal, ElementGroup>());
-println!("{}", slot::<Health, ResourceGroup>());
+## Dynamic dispatch
+
+`TypeSlot` is dyn-compatible. Use `dyn_slot` to retrieve a type's slot
+index through a trait object:
+
+```rust
+use typeslot::prelude::*;
+
+#[derive(SlotGroup)]
+struct MyGroup;
+
+#[derive(TypeSlot)]
+#[slot(MyGroup)]
+struct Foo;
+
+MyGroup::init();
+
+let val: &dyn TypeSlot<MyGroup> = &Foo;
+println!("{}", val.dyn_slot());
 ```
 
 ## Join the community!
