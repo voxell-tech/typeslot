@@ -60,8 +60,11 @@ impl Default for AtomicSlot {
 /// Submitted to the [`inventory`] collection at link time
 /// via `#[derive(TypeSlot)]`.
 pub struct TypeSlotEntry {
+    /// The [`TypeId`] of the registered type.
     pub type_id: TypeId,
+    /// The [`TypeId`] of the group.
     pub group_id: TypeId,
+    /// The slot where the assigned index will be written.
     pub slot: &'static AtomicSlot,
 }
 
@@ -75,17 +78,16 @@ inventory::collect!(TypeSlotEntry);
 /// ```
 /// use typeslot::prelude::*;
 ///
-/// // Define group markers.
-/// struct ResourceGroup;
+/// #[derive(SlotGroup)]
+/// struct EnemyGroup;
 ///
-/// // Derive `TypeSlot` on your types.
 /// #[derive(TypeSlot)]
-/// #[slot(ResourceGroup)]
-/// struct Health;
+/// #[slot(EnemyGroup)]
+/// struct Orc;
 /// ```
 pub trait TypeSlot<G: 'static>: 'static {
-    /// Returns the slot index, or `None` if [`init_slot`] has not
-    /// been called for `G` yet.
+    /// Returns the slot index, or `None` if [`init_slot`] or
+    /// [`SlotGroup::init`] has not been called for `G` yet.
     fn try_slot() -> Option<usize>
     where
         Self: Sized;
@@ -94,7 +96,8 @@ pub trait TypeSlot<G: 'static>: 'static {
     ///
     /// # Panics
     ///
-    /// Panics if [`init_slot`] has not been called for `G` yet.
+    /// Panics if [`init_slot`] or [`SlotGroup::init`] has not been
+    /// called for `G` yet.
     #[inline]
     fn slot() -> usize
     where
@@ -104,14 +107,16 @@ pub trait TypeSlot<G: 'static>: 'static {
     }
 
     /// Returns the slot index via a trait object, or `None` if
-    /// [`init_slot`] has not been called for `G` yet.
+    /// [`init_slot`] or [`SlotGroup::init`] has not been called for
+    /// `G` yet.
     fn dyn_try_slot(&self) -> Option<usize>;
 
     /// Returns the slot index via a trait object.
     ///
     /// # Panics
     ///
-    /// Panics if [`init_slot`] has not been called for `G` yet.
+    /// Panics if [`init_slot`] or [`SlotGroup::init`] has not been
+    /// called for `G` yet.
     #[inline]
     fn dyn_slot(&self) -> usize {
         self.dyn_try_slot()
@@ -119,8 +124,7 @@ pub trait TypeSlot<G: 'static>: 'static {
     }
 }
 
-/// A group of types that have been assigned slot indices via
-/// [`init_slot`].
+/// A group of types with statically assigned slot indices.
 ///
 /// Always use the derive macro to generate the correct
 /// implementation:
@@ -129,7 +133,7 @@ pub trait TypeSlot<G: 'static>: 'static {
 /// use typeslot::prelude::*;
 ///
 /// #[derive(SlotGroup)]
-/// struct ResourceGroup;
+/// struct EnemyGroup;
 /// ```
 pub trait SlotGroup: 'static {
     /// Assigns a unique index to each type registered in this group
