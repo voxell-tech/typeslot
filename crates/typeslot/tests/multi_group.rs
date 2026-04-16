@@ -1,41 +1,47 @@
 use typeslot::prelude::*;
 
-struct ElementGroup;
-struct ResourceGroup;
+#[derive(SlotGroup)]
+struct EnemyGroup;
+
+#[derive(SlotGroup)]
+struct BossGroup;
 
 #[derive(TypeSlot)]
-#[slot(ElementGroup)]
-struct Button;
+#[slot(EnemyGroup)]
+struct Orc;
 
 #[derive(TypeSlot)]
-#[slot(ResourceGroup)]
-struct Texture;
+#[slot(BossGroup)]
+struct Knight;
 
 #[derive(TypeSlot)]
-#[slot(ElementGroup, ResourceGroup)]
-struct Image;
+#[slot(EnemyGroup, BossGroup)]
+struct Dragon;
 
 #[test]
 fn unique_slot_indices_per_group() {
-    let elements = SlotGroup::<ElementGroup>::new();
-    let resources = SlotGroup::<ResourceGroup>::new();
+    assert_eq!(EnemyGroup::try_slot::<Orc>(), None);
+    assert_eq!(BossGroup::try_slot::<Knight>(), None);
+    assert_eq!(EnemyGroup::try_slot::<Dragon>(), None);
+    assert_eq!(BossGroup::try_slot::<Dragon>(), None);
 
-    assert_eq!(elements.try_get::<Button>(), None);
-    assert_eq!(resources.try_get::<Texture>(), None);
-    assert_eq!(elements.try_get::<Image>(), None);
-    assert_eq!(resources.try_get::<Image>(), None);
+    let enemy_count = EnemyGroup::init();
+    let boss_count = BossGroup::init();
 
-    let element_count = init_slot::<ElementGroup>();
-    let resource_count = init_slot::<ResourceGroup>();
+    assert_eq!(enemy_count, 2); // Orc, Dragon
+    assert_eq!(boss_count, 2); // Knight, Dragon
 
-    assert_eq!(element_count, 2); // Button, Image
-    assert_eq!(resource_count, 2); // Texture, Image
+    assert!(EnemyGroup::try_slot::<Orc>().is_some());
+    assert!(BossGroup::try_slot::<Knight>().is_some());
+    assert!(EnemyGroup::try_slot::<Dragon>().is_some());
+    assert!(BossGroup::try_slot::<Dragon>().is_some());
 
-    assert!(elements.try_get::<Button>().is_some());
-    assert!(resources.try_get::<Texture>().is_some());
-    assert!(elements.try_get::<Image>().is_some());
-    assert!(resources.try_get::<Image>().is_some());
-
-    assert_ne!(elements.get::<Button>(), elements.get::<Image>());
-    assert_ne!(resources.get::<Texture>(), resources.get::<Image>());
+    assert_ne!(
+        EnemyGroup::slot::<Orc>(),
+        EnemyGroup::slot::<Dragon>()
+    );
+    assert_ne!(
+        BossGroup::slot::<Knight>(),
+        BossGroup::slot::<Dragon>()
+    );
 }

@@ -1,30 +1,33 @@
 use typeslot::prelude::*;
 
-mod group_a {
+mod enemy {
+    use super::*;
+
+    #[derive(SlotGroup)]
     pub struct Group;
 }
-mod group_b {
+mod boss {
+    use super::*;
+
+    #[derive(SlotGroup)]
     pub struct Group;
 }
 
 #[derive(TypeSlot)]
-#[slot(group_a::Group, group_b::Group)]
-struct Shared;
+#[slot(enemy::Group, boss::Group)]
+struct Dragon;
 
 #[test]
 fn same_name_groups_are_independent() {
-    let a = SlotGroup::<group_a::Group>::new();
-    let b = SlotGroup::<group_b::Group>::new();
+    assert_eq!(enemy::Group::try_slot::<Dragon>(), None);
+    assert_eq!(boss::Group::try_slot::<Dragon>(), None);
 
-    assert_eq!(a.try_get::<Shared>(), None);
-    assert_eq!(b.try_get::<Shared>(), None);
+    let enemy_count = enemy::Group::init();
+    let boss_count = boss::Group::init();
 
-    let count_a = init_slot::<group_a::Group>();
-    let count_b = init_slot::<group_b::Group>();
+    assert_eq!(enemy_count, 1);
+    assert_eq!(boss_count, 1);
 
-    assert_eq!(count_a, 1);
-    assert_eq!(count_b, 1);
-
-    assert!(a.try_get::<Shared>().is_some());
-    assert!(b.try_get::<Shared>().is_some());
+    assert!(enemy::Group::try_slot::<Dragon>().is_some());
+    assert!(boss::Group::try_slot::<Dragon>().is_some());
 }

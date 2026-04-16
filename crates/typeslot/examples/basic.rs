@@ -1,43 +1,41 @@
 use typeslot::prelude::*;
 
-struct ElementGroup;
-struct ResourceGroup;
+#[derive(SlotGroup)]
+struct EnemyGroup;
+
+#[derive(SlotGroup)]
+struct AllyGroup;
+
+#[derive(SlotGroup)]
+struct BossGroup;
 
 #[derive(TypeSlot)]
-#[slot(ElementGroup)]
-struct Horizontal;
+#[slot(EnemyGroup)]
+struct Orc;
 
+// Dragon is both a regular enemy and a boss.
 #[derive(TypeSlot)]
-#[slot(ElementGroup)]
-struct Vertical;
+#[slot(EnemyGroup, BossGroup)]
+struct Dragon;
 
+// Knight is both an ally and a boss-tier ally.
 #[derive(TypeSlot)]
-#[slot(ResourceGroup)]
-struct Health;
-
-#[derive(TypeSlot)]
-#[slot(ResourceGroup)]
-struct Mana;
-
-// A type can belong to multiple groups.
-#[derive(TypeSlot)]
-#[slot(ElementGroup, ResourceGroup)]
-struct Label;
+#[slot(AllyGroup, BossGroup)]
+struct Knight;
 
 fn main() {
-    init_slot::<ElementGroup>();
-    init_slot::<ResourceGroup>();
+    EnemyGroup::init();
+    AllyGroup::init();
+    BossGroup::init();
 
-    let elements = SlotGroup::<ElementGroup>::new();
-    let resources = SlotGroup::<ResourceGroup>::new();
+    println!("Enemies:");
+    println!("  Orc:    {}", EnemyGroup::slot::<Orc>());
+    println!("  Dragon: {}", EnemyGroup::slot::<Dragon>());
 
-    println!("Elements:");
-    println!("  Horizontal: {}", elements.get::<Horizontal>());
-    println!("  Vertical:   {}", elements.get::<Vertical>());
-    println!("  Label:      {}", elements.get::<Label>());
+    println!("Allies:");
+    println!("  Knight: {}", AllyGroup::slot::<Knight>());
 
-    println!("Resources:");
-    println!("  Health: {}", resources.get::<Health>());
-    println!("  Mana:   {}", resources.get::<Mana>());
-    println!("  Label:  {}", resources.get::<Label>());
+    println!("Bosses:");
+    println!("  Dragon: {}", BossGroup::slot::<Dragon>());
+    println!("  Knight: {}", BossGroup::slot::<Knight>());
 }

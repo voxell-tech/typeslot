@@ -14,46 +14,66 @@ Assigns each type a unique `usize` index at startup, with optional group compart
 ```rust
 use typeslot::prelude::*;
 
-// Define group markers.
-struct ElementGroup;
-struct ResourceGroup;
+#[derive(SlotGroup)]
+struct EnemyGroup;
 
-// Derive `TypeSlot` on your types.
-#[derive(TypeSlot)]
-#[slot(ElementGroup)]
-struct Horizontal;
+#[derive(SlotGroup)]
+struct AllyGroup;
 
-#[derive(TypeSlot)]
-#[slot(ElementGroup)]
-struct Vertical;
+#[derive(SlotGroup)]
+struct BossGroup;
 
 #[derive(TypeSlot)]
-#[slot(ResourceGroup)]
-struct Health;
+#[slot(EnemyGroup)]
+struct Orc;
 
 // A type can belong to multiple groups.
+// Dragon is both a regular enemy and a boss.
 #[derive(TypeSlot)]
-#[slot(ElementGroup, ResourceGroup)]
-struct Label;
+#[slot(EnemyGroup, BossGroup)]
+struct Dragon;
 
-// Call `init_slot` once per group before accessing slots.
-// It returns the number of slots assigned in the group.
-let element_count = init_slot::<ElementGroup>();
-let resource_count = init_slot::<ResourceGroup>();
+// Knight is both an ally and a boss-tier ally.
+#[derive(TypeSlot)]
+#[slot(AllyGroup, BossGroup)]
+struct Knight;
 
-assert_eq!(element_count, 3); // Horizontal, Vertical, Label
-assert_eq!(resource_count, 2); // Health, Label
+let enemy_count = EnemyGroup::init();
+let ally_count = AllyGroup::init();
+let boss_count = BossGroup::init();
 
-// Use SlotGroup for ergonomic access without repeating the group type.
-let elements = SlotGroup::<ElementGroup>::new();
-let resources = SlotGroup::<ResourceGroup>::new();
+assert_eq!(enemy_count, 2); // 2: Orc, Dragon
+assert_eq!(ally_count, 1);  // 1: Knight
+assert_eq!(boss_count, 2);  // 2: Dragon, Knight
 
-println!("{}", elements.get::<Horizontal>());
-println!("{}", resources.get::<Health>());
+// Use `SlotGroup::len()` anytime to get the total count.
+assert_eq!(enemy_count, EnemyGroup::len());
+assert_eq!(ally_count, AllyGroup::len());
+assert_eq!(boss_count, BossGroup::len());
 
-// Or use the free functions directly.
-println!("{}", slot::<Horizontal, ElementGroup>());
-println!("{}", slot::<Health, ResourceGroup>());
+println!("{}", EnemyGroup::slot::<Dragon>());
+println!("{}", BossGroup::slot::<Knight>());
+```
+
+## Dynamic dispatch
+
+`TypeSlot` is dyn-compatible. Use `dyn_slot` to retrieve a type's slot
+index through a trait object:
+
+```rust
+use typeslot::prelude::*;
+
+#[derive(SlotGroup)]
+struct EnemyGroup;
+
+#[derive(TypeSlot)]
+#[slot(EnemyGroup)]
+struct Goblin;
+
+EnemyGroup::init();
+
+let enemy: &dyn TypeSlot<EnemyGroup> = &Goblin;
+println!("{}", enemy.dyn_slot());
 ```
 
 ## Join the community!

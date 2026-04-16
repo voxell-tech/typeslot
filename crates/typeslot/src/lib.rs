@@ -2,17 +2,15 @@
 #![no_std]
 
 use core::any::TypeId;
-use core::marker::PhantomData;
-use core::sync::atomic::AtomicUsize;
-use core::sync::atomic::Ordering;
+use core::sync::atomic::{AtomicUsize, Ordering};
 
-pub use typeslot_macros::TypeSlot;
+pub use typeslot_macros::{SlotGroup, TypeSlot};
 
 #[doc(hidden)]
 pub use inventory;
 
 pub mod prelude {
-    pub use crate::{SlotGroup, TypeSlot, init_slot, slot, try_slot};
+    pub use crate::{SlotGroup, TypeSlot, init_slot};
 }
 
 /// A write-once slot for a `usize` index.
@@ -62,8 +60,11 @@ impl Default for AtomicSlot {
 /// Submitted to the [`inventory`] collection at link time
 /// via `#[derive(TypeSlot)]`.
 pub struct TypeSlotEntry {
+    /// The [`TypeId`] of the registered type.
     pub type_id: TypeId,
+    /// The [`TypeId`] of the group.
     pub group_id: TypeId,
+    /// The slot where the assigned index will be written.
     pub slot: &'static AtomicSlot,
 }
 
@@ -77,77 +78,117 @@ inventory::collect!(TypeSlotEntry);
 /// ```
 /// use typeslot::prelude::*;
 ///
-/// // Define group markers.
-/// struct ResourceGroup;
+/// #[derive(SlotGroup)]
+/// struct EnemyGroup;
 ///
-/// // Derive `TypeSlot` on your types.
 /// #[derive(TypeSlot)]
-/// #[slot(ResourceGroup)]
-/// struct Health;
+/// #[slot(EnemyGroup)]
+/// struct Orc;
 /// ```
 pub trait TypeSlot<G: 'static>: 'static {
-    /// Returns the slot index, or `None` if [`init_slot`] has not
-    /// been called for `G` yet.
-    fn slot() -> Option<usize>
+    /// Returns the slot index, or `None` if [`init_slot`] or
+    /// [`SlotGroup::init`] has not been called for `G` yet.
+    fn try_slot() -> Option<usize>
     where
         Self: Sized;
 
-    fn dyn_slot(&self) -> Option<usize>;
-}
-
-/// A zero-sized handle for querying slot indices within group `G`.
-///
-/// Can be instantiated anywhere and used to query slots without
-/// repeating the group type parameter.
-pub struct SlotGroup<G>(PhantomData<G>);
-
-impl<G: 'static> SlotGroup<G> {
-    pub const fn new() -> Self {
-        Self(PhantomData)
-    }
-
-    /// Returns the slot index of type `T`, or `None` if [`init_slot`]
-    /// has not been called for `G` yet.
-    pub fn try_get<T: TypeSlot<G>>(&self) -> Option<usize> {
-        try_slot::<T, G>()
-    }
-
-    /// Returns the slot index of type `T`.
+    /// Returns the slot index.
     ///
     /// # Panics
     ///
-    /// Panics if [`init_slot`] has not been called for `G` yet.
-    pub fn get<T: TypeSlot<G>>(&self) -> usize {
-        slot::<T, G>()
+    /// Panics if [`init_slot`] or [`SlotGroup::init`] has not been
+    /// called for `G` yet.
+    #[inline]
+    fn slot() -> usize
+    where
+        Self: Sized,
+    {
+        Self::try_slot().expect("slot not initialized; call `init_slot` or `SlotGroup::init` first")
+    }
+
+    /// Returns the slot index via a trait object, or `None` if
+    /// [`init_slot`] or [`SlotGroup::init`] has not been called for
+    /// `G` yet.
+    fn dyn_try_slot(&self) -> Option<usize>;
+
+    /// Returns the slot index via a trait object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`init_slot`] or [`SlotGroup::init`] has not been
+    /// called for `G` yet.
+    #[inline]
+    fn dyn_slot(&self) -> usize {
+        self.dyn_try_slot()
+            .expect("slot not initialized; call `init_slot` or `SlotGroup::init` first")
     }
 }
 
-impl<G: 'static> Default for SlotGroup<G> {
-    fn default() -> Self {
-        Self::new()
+/// A group of types with statically assigned slot indices.
+///
+/// Always use the derive macro to generate the correct
+/// implementation:
+///
+/// ```
+/// use typeslot::prelude::*;
+///
+/// #[derive(SlotGroup)]
+/// struct EnemyGroup;
+/// ```
+pub trait SlotGroup: 'static {
+    /// Assigns a unique index to each type registered in this group
+    /// and records the total count.
+    ///
+    /// Must be called once before any call to [`SlotGroup::slot`] or
+    /// [`SlotGroup::len`].
+    ///
+    /// Returns the number of slots assigned.
+    ///
+    /// # Panics
+    ///
+    /// Panics if called more than once for the same group.
+    fn init() -> usize;
+
+    /// Returns the number of slots assigned to this group, or `None`
+    /// if [`SlotGroup::init`] has not been called yet.
+    fn try_len() -> Option<usize>;
+
+    /// Returns the number of slots assigned to this group.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`SlotGroup::init`] has not been called yet.
+    fn len() -> usize;
+
+    /// Returns the slot index of type `T` in this group, or `None` if
+    /// [`SlotGroup::init`] has not been called yet.
+    #[inline]
+    fn try_slot<T: TypeSlot<Self>>() -> Option<usize>
+    where
+        Self: Sized,
+    {
+        T::try_slot()
     }
-}
 
-/// Returns the slot index of type `T` in group `G`.
-///
-/// # Panics
-///
-/// Panics if [`init_slot`] has not been called for `G` yet.
-pub fn slot<T: TypeSlot<G>, G: 'static>() -> usize {
-    T::slot().expect("slot not initialized; call `init_slot` first")
-}
-
-/// Returns the slot index of type `T` in group `G`, or `None` if
-/// [`init_slot`] has not been called for `G` yet.
-pub fn try_slot<T: TypeSlot<G>, G: 'static>() -> Option<usize> {
-    T::slot()
+    /// Returns the slot index of type `T` in this group.
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`SlotGroup::init`] has not been called yet.
+    #[inline]
+    fn slot<T: TypeSlot<Self>>() -> usize
+    where
+        Self: Sized,
+    {
+        T::slot()
+    }
 }
 
 /// Assigns a unique index to each type registered in
 /// group `G`.
 ///
 /// Must be called once per group before any call to
-/// [`TypeSlot<G>::slot`].
+/// [`TypeSlot::slot`] or [`TypeSlot::try_slot`].
 ///
 /// Returns the number of slots assigned.
 ///
