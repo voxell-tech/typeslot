@@ -1,43 +1,43 @@
 use typeslot::prelude::*;
 
 #[derive(SlotGroup)]
-struct ComponentGroup;
+struct EnemyGroup;
 
 #[derive(TypeSlot)]
-#[slot(ComponentGroup)]
-struct Position;
+#[slot(EnemyGroup)]
+struct Orc;
 
 #[derive(TypeSlot)]
-#[slot(ComponentGroup)]
-struct Velocity;
+#[slot(EnemyGroup)]
+struct Goblin;
 
 #[derive(TypeSlot)]
-#[slot(ComponentGroup)]
-struct Health;
+#[slot(EnemyGroup)]
+struct Troll;
 
 #[test]
 fn unique_slot_indices() {
-    assert_eq!(ComponentGroup::try_slot::<Position>(), None);
-    assert_eq!(ComponentGroup::try_slot::<Velocity>(), None);
-    assert_eq!(ComponentGroup::try_slot::<Health>(), None);
+    assert_eq!(EnemyGroup::try_slot::<Orc>(), None);
+    assert_eq!(EnemyGroup::try_slot::<Goblin>(), None);
+    assert_eq!(EnemyGroup::try_slot::<Troll>(), None);
 
-    let count = init_slot::<ComponentGroup>();
+    let count = EnemyGroup::init();
 
     assert_eq!(count, 3);
-    assert!(ComponentGroup::try_slot::<Position>().is_some());
-    assert!(ComponentGroup::try_slot::<Velocity>().is_some());
-    assert!(ComponentGroup::try_slot::<Health>().is_some());
+    assert!(EnemyGroup::try_slot::<Orc>().is_some());
+    assert!(EnemyGroup::try_slot::<Goblin>().is_some());
+    assert!(EnemyGroup::try_slot::<Troll>().is_some());
 
     assert_ne!(
-        ComponentGroup::slot::<Position>(),
-        ComponentGroup::slot::<Velocity>()
+        EnemyGroup::slot::<Orc>(),
+        EnemyGroup::slot::<Goblin>()
     );
     assert_ne!(
-        ComponentGroup::slot::<Velocity>(),
-        ComponentGroup::slot::<Health>()
+        EnemyGroup::slot::<Goblin>(),
+        EnemyGroup::slot::<Troll>()
     );
     assert_ne!(
-        ComponentGroup::slot::<Position>(),
-        ComponentGroup::slot::<Health>()
+        EnemyGroup::slot::<Orc>(),
+        EnemyGroup::slot::<Troll>()
     );
 }
