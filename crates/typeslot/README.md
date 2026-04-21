@@ -55,6 +55,43 @@ println!("{}", EnemyGroup::slot::<Dragon>());
 println!("{}", BossGroup::slot::<Knight>());
 ```
 
+## Generic types
+
+For generic structs, use `register_typeslot!` directly, each concrete
+monomorphization gets its own slot:
+
+```rust
+use typeslot::prelude::*;
+use typeslot::register_typeslot;
+
+#[derive(SlotGroup)]
+struct EnemyGroup;
+
+#[derive(SlotGroup)]
+struct BossGroup;
+
+struct Fire;
+struct Ice;
+struct Lightning;
+
+struct Elemental<T>(core::marker::PhantomData<T>);
+
+register_typeslot!(Elemental<Fire>, EnemyGroup);
+register_typeslot!(Elemental<Ice>,  EnemyGroup);
+register_typeslot!(Elemental<Lightning>, BossGroup);
+
+let enemy_count = EnemyGroup::init();
+let boss_count = BossGroup::init();
+
+assert_eq!(enemy_count, 2); // Elemental<Fire>, Elemental<Ice>
+assert_eq!(boss_count, 1);  // Elemental<Lightning>
+
+assert_ne!(
+    EnemyGroup::slot::<Elemental<Fire>>(),
+    EnemyGroup::slot::<Elemental<Ice>>(),
+);
+```
+
 ## Dynamic dispatch
 
 `TypeSlot` is dyn-compatible. Use `dyn_slot` to retrieve a type's slot
