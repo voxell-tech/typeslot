@@ -29,30 +29,7 @@ pub fn derive_type_slot(input: TokenStream) -> TokenStream {
 
     let impls = groups.iter().map(|group| {
         quote! {
-            const _: () = {
-                static __SLOT: ::typeslot::AtomicSlot =
-                    ::typeslot::AtomicSlot::new();
-
-                impl ::typeslot::TypeSlot<#group> for #name {
-                    #[inline]
-                    fn try_slot() -> Option<usize> {
-                        __SLOT.get()
-                    }
-
-                    #[inline]
-                    fn dyn_try_slot(&self) -> Option<usize> {
-                        __SLOT.get()
-                    }
-                }
-
-                ::typeslot::inventory::submit! {
-                    ::typeslot::TypeSlotEntry {
-                        type_id: ::core::any::TypeId::of::<#name>(),
-                        group_id: ::core::any::TypeId::of::<#group>(),
-                        slot: &__SLOT,
-                    }
-                }
-            };
+            ::typeslot::register_typeslot!(#name, #group);
         }
     });
 

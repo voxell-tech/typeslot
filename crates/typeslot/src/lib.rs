@@ -207,6 +207,36 @@ pub fn init_slot<G: 'static>() -> usize {
     index
 }
 
+#[macro_export]
+macro_rules! register_typeslot {
+    ($target:path, $group:path) => {
+        const _: () = {
+            static __SLOT: $crate::AtomicSlot =
+                $crate::AtomicSlot::new();
+
+            impl $crate::TypeSlot<$group> for $target {
+                #[inline]
+                fn try_slot() -> Option<usize> {
+                    __SLOT.get()
+                }
+
+                #[inline]
+                fn dyn_try_slot(&self) -> Option<usize> {
+                    __SLOT.get()
+                }
+            }
+
+            $crate::inventory::submit! {
+                $crate::TypeSlotEntry {
+                    type_id: ::core::any::TypeId::of::<$target>(),
+                    group_id: ::core::any::TypeId::of::<$group>(),
+                    slot: &__SLOT,
+                }
+            }
+        };
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
