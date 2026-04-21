@@ -29,7 +29,7 @@ pub fn derive_type_slot(input: TokenStream) -> TokenStream {
 
     let impls = groups.iter().map(|group| {
         quote! {
-            ::typeslot::register_typeslot!(#name, #group);
+            ::typeslot::register!(#group, #name);
         }
     });
 

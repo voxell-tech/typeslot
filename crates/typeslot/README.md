@@ -57,12 +57,12 @@ println!("{}", BossGroup::slot::<Knight>());
 
 ## Generic types
 
-For generic structs, use `register_typeslot!` directly, each concrete
+For generic structs, use `register!` directly, each concrete
 monomorphization gets its own slot:
 
 ```rust
 use typeslot::prelude::*;
-use typeslot::register_typeslot;
+use typeslot::register;
 
 #[derive(SlotGroup)]
 struct EnemyGroup;
@@ -76,9 +76,8 @@ struct Lightning;
 
 struct Elemental<T>(core::marker::PhantomData<T>);
 
-register_typeslot!(Elemental<Fire>, EnemyGroup);
-register_typeslot!(Elemental<Ice>,  EnemyGroup);
-register_typeslot!(Elemental<Lightning>, BossGroup);
+register!(EnemyGroup, [Elemental<Fire>, Elemental<Ice>]);
+register!(BossGroup,  Elemental<Lightning>);
 
 let enemy_count = EnemyGroup::init();
 let boss_count = BossGroup::init();

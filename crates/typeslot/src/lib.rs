@@ -197,7 +197,7 @@ pub trait SlotGroup: 'static {
 /// Panics if called more than once for the same group.
 pub fn init_slot<G: 'static>() -> usize {
     let group_id = TypeId::of::<G>();
-    let mut index = 0usize;
+    let mut index = 0;
     for entry in inventory::iter::<TypeSlotEntry>() {
         if entry.group_id == group_id {
             entry.slot.set(index);
@@ -208,8 +208,11 @@ pub fn init_slot<G: 'static>() -> usize {
 }
 
 #[macro_export]
-macro_rules! register_typeslot {
-    ($target:path, $group:path) => {
+macro_rules! register {
+    ($group:path, [$($target:path),+ $(,)?]) => {
+        $( $crate::register!($group, $target); )+
+    };
+    ($group:path, $target:path) => {
         const _: () = {
             static __SLOT: $crate::AtomicSlot =
                 $crate::AtomicSlot::new();

@@ -1,5 +1,5 @@
 use typeslot::prelude::*;
-use typeslot::register_typeslot;
+use typeslot::register;
 
 #[derive(SlotGroup)]
 struct EnemyGroup;
@@ -30,9 +30,8 @@ struct Lightning;
 
 struct Elemental<T>(core::marker::PhantomData<T>);
 
-register_typeslot!(Elemental<Fire>, EnemyGroup);
-register_typeslot!(Elemental<Ice>, EnemyGroup);
-register_typeslot!(Elemental<Lightning>, BossGroup);
+register!(EnemyGroup, [Elemental<Fire>, Elemental<Ice>]);
+register!(BossGroup, Elemental<Lightning>);
 
 fn print_slot<G, T>(name: &str)
 where
