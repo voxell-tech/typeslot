@@ -197,7 +197,7 @@ pub trait SlotGroup: 'static {
 /// Panics if called more than once for the same group.
 pub fn init_slot<G: 'static>() -> usize {
     let group_id = TypeId::of::<G>();
-    let mut index = 0usize;
+    let mut index = 0;
     for entry in inventory::iter::<TypeSlotEntry>() {
         if entry.group_id == group_id {
             entry.slot.set(index);
@@ -205,6 +205,39 @@ pub fn init_slot<G: 'static>() -> usize {
         }
     }
     index
+}
+
+#[macro_export]
+macro_rules! register {
+    ($group:path, [$($target:path),+ $(,)?]) => {
+        $( $crate::register!($group, $target); )+
+    };
+    ($group:path, $target:path) => {
+        const _: () = {
+            static __SLOT: $crate::AtomicSlot =
+                $crate::AtomicSlot::new();
+
+            impl $crate::TypeSlot<$group> for $target {
+                #[inline]
+                fn try_slot() -> Option<usize> {
+                    __SLOT.get()
+                }
+
+                #[inline]
+                fn dyn_try_slot(&self) -> Option<usize> {
+                    __SLOT.get()
+                }
+            }
+
+            $crate::inventory::submit! {
+                $crate::TypeSlotEntry {
+                    type_id: ::core::any::TypeId::of::<$target>(),
+                    group_id: ::core::any::TypeId::of::<$group>(),
+                    slot: &__SLOT,
+                }
+            }
+        };
+    };
 }
 
 #[cfg(test)]

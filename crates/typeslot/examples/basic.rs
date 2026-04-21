@@ -1,4 +1,5 @@
 use typeslot::prelude::*;
+use typeslot::register;
 
 #[derive(SlotGroup)]
 struct EnemyGroup;
@@ -23,19 +24,41 @@ struct Dragon;
 #[slot(AllyGroup, BossGroup)]
 struct Knight;
 
+struct Fire;
+struct Ice;
+struct Lightning;
+
+struct Elemental<T>(core::marker::PhantomData<T>);
+
+register!(EnemyGroup, [Elemental<Fire>, Elemental<Ice>]);
+register!(BossGroup, Elemental<Lightning>);
+
+fn print_slot<G, T>(name: &str)
+where
+    G: SlotGroup,
+    T: TypeSlot<G>,
+{
+    println!("  {name}: {}", T::slot());
+}
+
 fn main() {
     EnemyGroup::init();
     AllyGroup::init();
     BossGroup::init();
 
     println!("Enemies:");
-    println!("  Orc:    {}", EnemyGroup::slot::<Orc>());
-    println!("  Dragon: {}", EnemyGroup::slot::<Dragon>());
+    print_slot::<EnemyGroup, Orc>("Orc");
+    print_slot::<EnemyGroup, Dragon>("Dragon");
 
     println!("Allies:");
-    println!("  Knight: {}", AllyGroup::slot::<Knight>());
+    print_slot::<AllyGroup, Knight>("Knight");
 
     println!("Bosses:");
-    println!("  Dragon: {}", BossGroup::slot::<Dragon>());
-    println!("  Knight: {}", BossGroup::slot::<Knight>());
+    print_slot::<BossGroup, Dragon>("Dragon");
+    print_slot::<BossGroup, Knight>("Knight");
+
+    println!("Elementals:");
+    print_slot::<EnemyGroup, Elemental<Fire>>("Fire");
+    print_slot::<EnemyGroup, Elemental<Ice>>("Ice");
+    print_slot::<BossGroup, Elemental<Lightning>>("Lightning");
 }
