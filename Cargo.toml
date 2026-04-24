@@ -13,3 +13,8 @@ categories = ["no-std", "rust-patterns", "development-tools"]
 [workspace.dependencies]
 typeslot_macros = { version = "0.3.0", path = "crates/typeslot_macros" }
 inventory = "0.3"
+hashbrown = { version = "0.15", default-features = false, features = ["default-hasher"] }
+spin = { version = "0.9", default-features = false, features = ["rwlock", "lazy"] }
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["derive"] }

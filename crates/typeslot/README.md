@@ -57,8 +57,13 @@ println!("{}", BossGroup::slot::<Knight>());
 
 ## Generic types
 
-For generic structs, use `register!` directly, each concrete
-monomorphization gets its own slot:
+Due to [rust-lang/rfcs#2130](https://github.com/rust-lang/rfcs/issues/2130), Rust
+does not support per-monomorphization statics in blanket impls. There are two ways
+to work around this.
+
+**Static registration** - use `register!` to explicitly register each concrete
+monomorphization you need. Slots are assigned at startup by `init()`, and `len()`
+reflects exactly the number registered:
 
 ```rust
 use typeslot::prelude::*;
@@ -89,6 +94,71 @@ assert_ne!(
     EnemyGroup::slot::<Elemental<Fire>>(),
     EnemyGroup::slot::<Elemental<Ice>>(),
 );
+```
+
+**Lazy registration, `generic` feature** - enable the `generic` feature for
+open-ended registration. Slots for generic types are assigned on first access
+via a per-group `HashMap<TypeId, usize>`, starting after the statically registered
+slots. `len()` grows each time a new monomorphization is first queried.
+
+```toml
+[dependencies]
+typeslot = { version = "*", features = ["generic"] }
+```
+
+Use `#[derive(TypeSlot)]` on a generic struct - any `T` gets a slot automatically:
+
+```rust
+use typeslot::prelude::*;
+use core::marker::PhantomData;
+
+#[derive(SlotGroup)]
+#[generic]
+struct EnemyGroup;
+
+#[derive(TypeSlot)]
+#[slot(EnemyGroup)]
+struct Elemental<T>(PhantomData<T>);
+
+struct Fire;
+struct Ice;
+
+EnemyGroup::init();
+assert_eq!(EnemyGroup::len(), 0); // no slots yet — none accessed
+
+let fire_slot = EnemyGroup::slot::<Elemental<Fire>>();
+assert_eq!(EnemyGroup::len(), 1); // grew on first access
+
+let ice_slot  = EnemyGroup::slot::<Elemental<Ice>>();
+assert_eq!(EnemyGroup::len(), 2); // grew again
+
+assert_ne!(fire_slot, ice_slot);
+assert_eq!(EnemyGroup::slot::<Elemental<Fire>>(), fire_slot); // stable across calls
+assert_eq!(EnemyGroup::len(), 2); // re-access does not grow len
+```
+
+For foreign generic types, use `register_generic!` instead:
+
+```rust
+use typeslot::prelude::*;
+use typeslot::register_generic;
+use core::marker::PhantomData;
+
+#[derive(SlotGroup)]
+#[generic]
+struct EnemyGroup;
+
+struct Elemental<T>(PhantomData<T>);
+struct Duo<A, B>(PhantomData<(A, B)>);
+struct Fire;
+struct Ice;
+
+// Single type or multiple types with []:
+register_generic!(EnemyGroup, [Elemental<T>, Duo<A, B>]);
+
+EnemyGroup::init();
+println!("{}", EnemyGroup::slot::<Elemental<Fire>>());
+println!("{}", EnemyGroup::slot::<Duo<Fire, Ice>>());
 ```
 
 ## Dynamic dispatch

@@ -2,6 +2,7 @@ use typeslot::prelude::*;
 use typeslot::register;
 
 #[derive(SlotGroup)]
+#[generic]
 struct EnemyGroup;
 
 #[derive(SlotGroup)]

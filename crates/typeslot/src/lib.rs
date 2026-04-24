@@ -4,10 +4,20 @@
 use core::any::TypeId;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
-pub use typeslot_macros::{SlotGroup, TypeSlot};
+#[cfg(feature = "generic")]
+pub use typeslot_macros::register_generic;
+pub use typeslot_macros::{SlotGroup, TypeSlot, register};
 
 #[doc(hidden)]
 pub use inventory;
+
+#[cfg(feature = "generic")]
+#[doc(hidden)]
+pub use hashbrown;
+
+#[cfg(feature = "generic")]
+#[doc(hidden)]
+pub use spin;
 
 pub mod prelude {
     pub use crate::{SlotGroup, TypeSlot, init_slot};
@@ -184,6 +194,14 @@ pub trait SlotGroup: 'static {
     }
 }
 
+#[cfg(feature = "generic")]
+pub trait SlotGroupGen: 'static {
+    #[doc(hidden)]
+    fn __try_generic_slot(type_id: TypeId) -> Option<usize>
+    where
+        Self: Sized;
+}
+
 /// Assigns a unique index to each type registered in
 /// group `G`.
 ///
@@ -205,39 +223,6 @@ pub fn init_slot<G: 'static>() -> usize {
         }
     }
     index
-}
-
-#[macro_export]
-macro_rules! register {
-    ($group:path, [$($target:path),+ $(,)?]) => {
-        $( $crate::register!($group, $target); )+
-    };
-    ($group:path, $target:path) => {
-        const _: () = {
-            static __SLOT: $crate::AtomicSlot =
-                $crate::AtomicSlot::new();
-
-            impl $crate::TypeSlot<$group> for $target {
-                #[inline]
-                fn try_slot() -> Option<usize> {
-                    __SLOT.get()
-                }
-
-                #[inline]
-                fn dyn_try_slot(&self) -> Option<usize> {
-                    __SLOT.get()
-                }
-            }
-
-            $crate::inventory::submit! {
-                $crate::TypeSlotEntry {
-                    type_id: ::core::any::TypeId::of::<$target>(),
-                    group_id: ::core::any::TypeId::of::<$group>(),
-                    slot: &__SLOT,
-                }
-            }
-        };
-    };
 }
 
 #[cfg(test)]

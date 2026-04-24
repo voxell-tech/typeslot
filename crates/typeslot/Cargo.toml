@@ -12,3 +12,13 @@ readme = "README.md"
 [dependencies]
 typeslot_macros.workspace = true
 inventory.workspace = true
+hashbrown = { workspace = true, optional = true }
+spin = { workspace = true, optional = true }
+
+[features]
+default = ["generic"]
+generic = ["dep:hashbrown", "dep:spin", "typeslot_macros/generic"]
+
+[[test]]
+name = "generic_derive"
+required-features = ["generic"]
