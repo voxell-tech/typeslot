@@ -57,9 +57,8 @@ println!("{}", BossGroup::slot::<Knight>());
 
 ## Generic types
 
-Due to [rust-lang/rfcs#2130](https://github.com/rust-lang/rfcs/issues/2130), Rust
-does not support per-monomorphization statics in blanket impls. There are two ways
-to work around this.
+Rust does not support [per-monomorphization statics in blanket impls](https://github.com/rust-lang/rfcs/issues/2130).
+There are two ways to work around this.
 
 **Static registration** - use `register!` to explicitly register each concrete
 monomorphization you need. Slots are assigned at startup by `init()`, and `len()`
@@ -96,10 +95,11 @@ assert_ne!(
 );
 ```
 
-**Lazy registration, `generic` feature** - enable the `generic` feature for
-open-ended registration. Slots for generic types are assigned on first access
-via a per-group `HashMap<TypeId, usize>`, starting after the statically registered
-slots. `len()` grows each time a new monomorphization is first queried.
+**Lazy registration, `generic` feature** - enable the `generic` feature
+(enabled by default) for open-ended registration. Slots for generic
+types are assigned on first access via a per-group `HashMap<TypeId, usize>`,
+starting after the statically registered slots. `len()` grows each time a
+new monomorphization is first queried.
 
 ```toml
 [dependencies]
@@ -113,6 +113,7 @@ use typeslot::prelude::*;
 use core::marker::PhantomData;
 
 #[derive(SlotGroup)]
+// This attribute is essential, otherwise, #[derive(TypeSlot)] will fail on generics.
 #[generic]
 struct EnemyGroup;
 
@@ -120,21 +121,28 @@ struct EnemyGroup;
 #[slot(EnemyGroup)]
 struct Elemental<T>(PhantomData<T>);
 
+#[derive(TypeSlot)]
+#[slot(EnemyGroup)]
 struct Fire;
+
+#[derive(TypeSlot)]
+#[slot(EnemyGroup)]
 struct Ice;
 
 EnemyGroup::init();
-assert_eq!(EnemyGroup::len(), 0); // no slots yet — none accessed
+
+// Fire & Ice will be registered first since they are concrete types.
+assert_eq!(EnemyGroup::len(), 2);
 
 let fire_slot = EnemyGroup::slot::<Elemental<Fire>>();
-assert_eq!(EnemyGroup::len(), 1); // grew on first access
+assert_eq!(EnemyGroup::len(), 3); // grew on first access
 
 let ice_slot  = EnemyGroup::slot::<Elemental<Ice>>();
-assert_eq!(EnemyGroup::len(), 2); // grew again
+assert_eq!(EnemyGroup::len(), 4); // grew again
 
 assert_ne!(fire_slot, ice_slot);
 assert_eq!(EnemyGroup::slot::<Elemental<Fire>>(), fire_slot); // stable across calls
-assert_eq!(EnemyGroup::len(), 2); // re-access does not grow len
+assert_eq!(EnemyGroup::len(), 4); // re-access does not grow len
 ```
 
 For foreign generic types, use `register_generic!` instead:

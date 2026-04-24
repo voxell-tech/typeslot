@@ -224,8 +224,22 @@ impl Parse for PathGenerics {
     }
 }
 
-// #[derive(TypeSlot)]
-
+/// ```ignore
+/// #[derive(TypeSlot)]
+/// #[slot(Group)]
+/// struct Foo;
+/// ```
+///
+/// Generic types can only be derived on if the `generic` feature is
+/// enabled.
+///
+/// ```ignore
+/// #[derive(TypeSlot)]
+/// #[slot(Group)]
+/// struct Bar<T>;
+/// ```
+///
+/// Otherwise, register manually via the [`register!`] macro.
 #[proc_macro_derive(TypeSlot, attributes(slot))]
 pub fn derive_type_slot(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
